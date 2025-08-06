@@ -49,7 +49,7 @@ debug:
 		main.c \
 		-o main -lm -lcrypto
 
-testcsifish: csidh.c mont.c classgroup.c reduce.c reduce.h test.c csidh.h mont.h classgroup.h keccaklib merkletree.c merkletree.h
+testorcas: csidh.c mont.c classgroup.c reduce.c reduce.h test.c csidh.h mont.h classgroup.h keccaklib merkletree.c merkletree.h
 	@cc \
 		$(if ${BENCH_ITS},-DBENCH_ITS=${BENCH_ITS}) \
 		$(if ${BENCH_VAL},-DBENCH_VAL=${BENCH_VAL}) \
@@ -66,12 +66,13 @@ testcsifish: csidh.c mont.c classgroup.c reduce.c reduce.h test.c csidh.h mont.h
 		${UINT_IMPL} ${FP_IMPL} \
 		mont.c \
 		csidh.c \
+		orcas.c \
 		test.c\
 		csifish.c \
 		merkletree.c \
 		reduce.c \
 		classgroup.c \
-		-o testcsifish -lm -g -lgmp -lcrypto -lkeccak
+		-o testorcas -lm -g -lgmp -lcrypto -lkeccak
 
 bench: csidh.c bench.c mont.c classgroup.c reduce.c reduce.h keccaklib
 	@cc \
