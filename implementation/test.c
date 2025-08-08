@@ -7,7 +7,7 @@
 #include <time.h>
 
 #define KEYS 1
-#define SIGNATURES_PER_KEY 100
+#define SIGNATURES_PER_KEY 1
 
 static inline
 uint64_t rdtsc(){
@@ -23,13 +23,15 @@ int main(){
 	clock_t t0;
 	unsigned char *pk = aligned_alloc(64,PK_BYTES);
 	unsigned char *sk = aligned_alloc(64,SK_BYTES);
-	unsigned char *Y = aligned_alloc(64,STMT_BYTES);
-	unsigned char *y = aligned_alloc(64,WIT_BYTES);
-
 	printf("pk bytes : %ld\n", (long) PK_BYTES );
 	printf("sk bytes : %ld\n", (long) SK_BYTES );
-	printf("Y bytes : %ld\n", (long) STMT_BYTES );
-	printf("y bytes : %ld\n", (long) WIT_BYTES );
+
+	// let stmt be a pointer to the stack
+	uint stmt[1];
+	mpz_t wit1;
+	mpz_t wit2;
+	mpz_init(wit1);
+	mpz_init(wit2);
 
 	unsigned char message[1];
 	message[0] = 42;
@@ -53,6 +55,8 @@ int main(){
 	uint64_t rgenCycles = 0;
 	uint64_t presignCycles = 0;
 	uint64_t preverifyCycles = 0;
+	uint64_t adaptCycles = 0;
+	uint64_t extractCycles = 0;
 	
 	uint64_t sig_size = 0;
 	uint64_t sig_size_max = 0;
@@ -64,6 +68,7 @@ int main(){
 	uint64_t t;
 
 	for(int i=0 ; i<KEYS; i++){
+	        // keygen
 		printf("keygen #%d \n", i);
 		t0 = clock();
 		t = rdtsc();
@@ -72,10 +77,11 @@ int main(){
 		keygenTime += 1000. * (clock() - t0) / CLOCKS_PER_SEC;
 
 		for(int j=0; j<SIGNATURES_PER_KEY; j++){
-			printf("(pre-)signature #%d for key %d \n", j , i );
-
 			// CSI-FiSh at bat
+			printf("signature #%d for key %d \n", j , i );
 
+			// sign
+			printf(" - sign \n");
 			t0 = clock();
 			t = rdtsc();
 			csifish_sign(sk,message,1,sig,&sig_len);
@@ -88,58 +94,87 @@ int main(){
 
 			sig[sig_len] = 0;
 
+			// verify
+			printf(" - verify \n");
 			t0 = clock();
 			t = rdtsc();
 			int ver = csifish_verify(pk,message,1,sig, sig_len);
 			verifyCycles += rdtsc()-t;
 			verifyTime += 1000. * (clock() - t0) / CLOCKS_PER_SEC;
 
+			// verification ok?
 			if(ver <0){
 				printf("Signature invalid! \n");
 			}
 
 			// ORCAS at bat
+			printf("pre-signature #%d for key %d \n", j , i );
 
+			// rgen
+			printf(" - rgen \n");
 			t0 = clock();
 			t = rdtsc();
-			orcas_rgen(Y, y);
+			orcas_rgen(stmt, wit1);
 			rgenCycles += rdtsc()-t;
 			rgenTime += 1000. * (clock() - t0) / CLOCKS_PER_SEC;
+			print_uint(stmt);
 
+			// pre-sign
+			printf(" - pre-sign \n");
 			t0 = clock();
 			t = rdtsc();
-			orcas_presign(sk,m,1,Y,psig,&psig_len);
+			orcas_presign(sk,message,1,stmt,psig,&psig_len);
 			presignCycles += rdtsc()-t;
 			presignTime += 1000. * (clock() - t0) / CLOCKS_PER_SEC;
 			psig_size += psig_len;
+			print_uint(stmt);
 
 			psig_size_max = ( psig_len > psig_size_max ? psig_len : psig_size_max );
 			psig_size_min = ( psig_len > psig_size_min ? psig_size_min : psig_len );
 
 			psig[psig_len] = 0;
 
+			// pre-verify
+			printf(" - pre-verify \n");
 			t0 = clock();
 			t = rdtsc();
-			int pver = orcas_preverify(pk,message,1,Y,psig,psig_len);
+			int pver = orcas_preverify(pk,message,1,stmt,psig,psig_len);
 			preverifyCycles += rdtsc()-t;
 			preverifyTime += 1000. * (clock() - t0) / CLOCKS_PER_SEC;
+			print_uint(stmt);
 
+			// pre-verification ok?
 			if(pver <0){
-				printf("Pre-signature invalid! \n");
+			  printf("Pre-signature invalid! (error %d) \n", pver);
 			}
 
+			// adapt
+			printf(" - adapt \n");
 			t0 = clock();
 			t = rdtsc();
-			orcas_adapt(psig, psig_len, y, sig, &sig_len);
+			orcas_adapt(psig, psig_len, wit1, sig, &sig_len);
 			adaptCycles += rdtsc()-t;
 			adaptTime += 1000. * (clock() - t0) / CLOCKS_PER_SEC;
 
+			// adaptation ok?
+			if(csifish_verify(pk,message,1,sig, sig_len) < 0){
+				printf("Adapted signature invalid! \n");
+			}
+
+			// extract
+			printf(" - extract \n");
 			t0 = clock();
 			t = rdtsc();
-			orcas_extract(psig, psig_len, sig, sig_len, y);
+			int ext = orcas_extract(psig, psig_len, sig, sig_len, wit2);
 			extractCycles += rdtsc()-t;
 			extractTime += 1000. * (clock() - t0) / CLOCKS_PER_SEC;
 
+			// extraction ok?
+			if(ext < 0){
+				printf("Extraction failed! \n");
+			} else if(mpz_cmp(wit1, wit2) != 0){
+				printf("Extracted witness incorrect! \n");
+			}
 		}
 	}
 
@@ -171,4 +206,7 @@ int main(){
 
 	free(pk);
 	free(sk);
+	mpz_clear(wit1);
+	mpz_clear(wit2);
 }
+

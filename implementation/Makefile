@@ -120,5 +120,5 @@ keccaklib:
 	(cd XKCP; make generic64/libkeccak.a)
 
 clean:
-	@rm -f main bench testcsifish
+	@rm -f main bench testorcas
 
