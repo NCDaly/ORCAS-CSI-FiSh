@@ -15,7 +15,7 @@ void orcas_rgen(uint *stmt, mpz_t wit) {
   action(&out, &base, &vec);
   
   // convert to uint64_t
-  fp_dec(stmt, &(out.A));
+  fp_dec(stmt, &out.A);
   
   clear_classgroup();
 }
@@ -56,12 +56,13 @@ int randrange(int min, int max) {
 }
 
 void shuffle_curves_with_seed(const unsigned char *seed, unsigned char *target, uint *curves) {
+  printf("shuffling! \n");
+  printf("target : %d", (int) *target);
   // using Durstenfeld's version of the Fisher-Yates shuffle
   // (plus some extra bookkeeping to track the target round)
   unsigned char seeds[SEED_BYTES*(ROUNDS-1)];
   EXPAND(seed, SEED_BYTES, seeds, SEED_BYTES);
   int swaps[ROUNDS-1];
-
   // permute the curves, keeping track of which swaps we apply
   for (int i = 0; i <= ROUNDS - 2; i++) {
     // pick random index i <= j < ROUNDS to swap with i
@@ -77,8 +78,10 @@ void shuffle_curves_with_seed(const unsigned char *seed, unsigned char *target, 
   for (int i = ROUNDS - 2; i >= 0; i--) {
     if ((int) *target == i || (int) *target == swaps[i]) {
       *target = (unsigned char) ((int) *target == i ? swaps[i] : i);
-    }
+      printf(" -> %d", (int) *target);
+    } 
   }
+  printf("\n");
 }
 
 void shuffle_curves(unsigned char *target, uint *curves) {
@@ -117,7 +120,8 @@ void orcas_presign(const unsigned char *sk,const unsigned char *m, uint64_t mlen
     
     // compute E_o * vec (Y * vec in target round)
     public_key out;
-    if (k == target) {
+    if (k == (int) target) {
+      printf("using stmt for curve %d \n", k);
       public_key start;
       fp_enc(&start.A, stmt);
       action(&out, &start, &priv);      
@@ -127,6 +131,7 @@ void orcas_presign(const unsigned char *sk,const unsigned char *m, uint64_t mlen
     
     // convert to uint64_t's
     fp_dec(&curves[k], &out.A);
+    print_uint(curves[k]);
   }
 
   // shuffle & repeat until we get an acceptable challenge
@@ -164,11 +169,8 @@ void orcas_presign(const unsigned char *sk,const unsigned char *m, uint64_t mlen
     }
   }
 
-  printf("target : %d \n", (int) target);
-  for (int i = 0; i < ROUNDS; i++) {
-    printf("curve %d : ", i);
-    print_uint(curves[i]);
-  }
+  printf("curve %d : ", (int) target);
+  print_uint(curves[(int) target]);
 
   // copy target and hash to pre-signature
   psig[0] = target;
@@ -236,14 +238,14 @@ int orcas_preverify(const unsigned char *pk, const unsigned char *m, uint64_t ml
   for(int i=0; i<ROUNDS; i++){
     // encode starting point
     public_key start,end;
-    fp_enc(&(start.A), &pkcurves[challenges_index[i]]);
-    
-    if(challenges_sign[i]){
-      fp_mul2(&start.A,&minus_one);
-    }
-    
-    if (i == target) {
+    if (i == (int) target) {
+      printf("using stmt for curve %d \n", i);
       fp_enc(&start.A, stmt);
+    } else {
+      fp_enc(&(start.A), &pkcurves[challenges_index[i]]);
+      if(challenges_sign[i]){
+	fp_mul2(&start.A,&minus_one);
+      }
     }
     
     // decode path
@@ -264,15 +266,13 @@ int orcas_preverify(const unsigned char *pk, const unsigned char *m, uint64_t ml
     action(&end,&start,&path);
     
     // decode endpoint
-    fp_dec(&curves[i],&end.A);	
-  }
-  
-  printf("target : %d \n", (int) target);
-  for (int i = 0; i < ROUNDS; i++) {
-    printf("curve %d : ", i);
+    fp_dec(&curves[i],&end.A);
     print_uint(curves[i]);
   }
-
+  
+  printf("curve %d : ", (int) target);
+  print_uint(curves[(int) target]);
+  
   clear_classgroup();
   
   // challenge for target round should be 0

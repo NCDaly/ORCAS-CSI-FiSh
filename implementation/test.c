@@ -23,13 +23,12 @@ int main(){
 	clock_t t0;
 	unsigned char *pk = aligned_alloc(64,PK_BYTES);
 	unsigned char *sk = aligned_alloc(64,SK_BYTES);
-	printf("pk bytes : %ld\n", (long) PK_BYTES );
-	printf("sk bytes : %ld\n", (long) SK_BYTES );
-
-	// let stmt be a pointer to the stack
-	uint stmt[1];
-	mpz_t wit1;
-	mpz_t wit2;
+	uint *stmt = aligned_alloc(64, STMT_BYTES);
+	mpz_t wit1, wit2;
+	printf("pk bytes : %ld \n", (long) PK_BYTES);
+	printf("sk bytes : %ld \n", (long) SK_BYTES);
+	printf("stmt bytes : %ld \n", (long) STMT_BYTES);
+	printf("wit bytes : %ld \n", (long) WIT_BYTES);
 	mpz_init(wit1);
 	mpz_init(wit2);
 
@@ -39,6 +38,9 @@ int main(){
 	unsigned char psig[PSIG_BYTES+1];
 	uint64_t sig_len;
 	uint64_t psig_len;
+	printf("stmt addr : %p \n", (void *) stmt);
+	printf("sig_len addr : %p \n", (void *) &sig_len);
+	printf("psi_len addr : %p \n", (void *) &psig_len);
 
 	double keygenTime = 0;
 	double signTime = 0;
@@ -117,7 +119,6 @@ int main(){
 			orcas_rgen(stmt, wit1);
 			rgenCycles += rdtsc()-t;
 			rgenTime += 1000. * (clock() - t0) / CLOCKS_PER_SEC;
-			print_uint(stmt);
 
 			// pre-sign
 			printf(" - pre-sign \n");
@@ -127,7 +128,6 @@ int main(){
 			presignCycles += rdtsc()-t;
 			presignTime += 1000. * (clock() - t0) / CLOCKS_PER_SEC;
 			psig_size += psig_len;
-			print_uint(stmt);
 
 			psig_size_max = ( psig_len > psig_size_max ? psig_len : psig_size_max );
 			psig_size_min = ( psig_len > psig_size_min ? psig_size_min : psig_len );
@@ -141,7 +141,6 @@ int main(){
 			int pver = orcas_preverify(pk,message,1,stmt,psig,psig_len);
 			preverifyCycles += rdtsc()-t;
 			preverifyTime += 1000. * (clock() - t0) / CLOCKS_PER_SEC;
-			print_uint(stmt);
 
 			// pre-verification ok?
 			if(pver <0){
@@ -206,6 +205,7 @@ int main(){
 
 	free(pk);
 	free(sk);
+	free(stmt);
 	mpz_clear(wit1);
 	mpz_clear(wit2);
 }
