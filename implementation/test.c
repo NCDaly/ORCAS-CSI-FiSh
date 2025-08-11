@@ -7,7 +7,7 @@
 #include <time.h>
 
 #define KEYS 1
-#define SIGNATURES_PER_KEY 1
+#define SIGNATURES_PER_KEY 100
 
 static inline
 uint64_t rdtsc(){
@@ -38,9 +38,6 @@ int main(){
 	unsigned char psig[PSIG_BYTES+1];
 	uint64_t sig_len;
 	uint64_t psig_len;
-	printf("stmt addr : %p \n", (void *) stmt);
-	printf("sig_len addr : %p \n", (void *) &sig_len);
-	printf("psi_len addr : %p \n", (void *) &psig_len);
 
 	double keygenTime = 0;
 	double signTime = 0;
@@ -59,6 +56,8 @@ int main(){
 	uint64_t preverifyCycles = 0;
 	uint64_t adaptCycles = 0;
 	uint64_t extractCycles = 0;
+
+	int presignRepetitions = 0;
 	
 	uint64_t sig_size = 0;
 	uint64_t sig_size_max = 0;
@@ -124,10 +123,11 @@ int main(){
 			printf(" - pre-sign \n");
 			t0 = clock();
 			t = rdtsc();
-			orcas_presign(sk,message,1,stmt,psig,&psig_len);
+			int reps = orcas_presign(sk,message,1,stmt,psig,&psig_len);
 			presignCycles += rdtsc()-t;
 			presignTime += 1000. * (clock() - t0) / CLOCKS_PER_SEC;
 			psig_size += psig_len;
+			presignRepetitions += reps;
 
 			psig_size_max = ( psig_len > psig_size_max ? psig_len : psig_size_max );
 			psig_size_min = ( psig_len > psig_size_min ? psig_size_min : psig_len );
@@ -194,6 +194,8 @@ int main(){
 	printf("adapting cycles :         %lu \n", adaptCycles/KEYS/SIGNATURES_PER_KEY );
 	printf("extracting cycles :       %lu \n\n", extractCycles/KEYS/SIGNATURES_PER_KEY );
 
+	printf("pre-signing repetitions : %d \n\n", presignRepetitions/KEYS/SIGNATURES_PER_KEY );
+
 	printf("keygen time :           %lf ms \n", keygenTime/KEYS );
 	printf("signing time :          %lf ms \n", signTime/KEYS/SIGNATURES_PER_KEY );
 	printf("verification time :     %lf ms \n", verifyTime/KEYS/SIGNATURES_PER_KEY );
@@ -209,4 +211,3 @@ int main(){
 	mpz_clear(wit1);
 	mpz_clear(wit2);
 }
-

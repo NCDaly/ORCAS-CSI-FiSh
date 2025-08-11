@@ -49,7 +49,7 @@ debug:
 		main.c \
 		-o main -lm -lcrypto
 
-testorcas: csidh.c mont.c classgroup.c reduce.c reduce.h test.c csidh.h mont.h classgroup.h keccaklib merkletree.c merkletree.h
+testorcas: csidh.c mont.c classgroup.c reduce.c reduce.h test.c csidh.h mont.h classgroup.h keccaklib merkletree.c merkletree.h utils.c utils.h
 	@cc \
 		$(if ${BENCH_ITS},-DBENCH_ITS=${BENCH_ITS}) \
 		$(if ${BENCH_VAL},-DBENCH_VAL=${BENCH_VAL}) \
@@ -72,6 +72,7 @@ testorcas: csidh.c mont.c classgroup.c reduce.c reduce.h test.c csidh.h mont.h c
 		merkletree.c \
 		reduce.c \
 		classgroup.c \
+		utils.c \
 		-o testorcas -lm -g -lgmp -lcrypto -lkeccak
 
 bench: csidh.c bench.c mont.c classgroup.c reduce.c reduce.h keccaklib

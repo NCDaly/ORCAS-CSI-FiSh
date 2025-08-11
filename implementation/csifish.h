@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "utils.h"
 #include "csidh.h"
 #include "merkletree.h"
 #include "stdint.h"

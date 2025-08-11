@@ -2,8 +2,8 @@
 #define FP_H
 
 #include <stdbool.h>
-
 #include "params.h"
+#include "parameters.h"
 
 extern const fp fp_0;
 extern const fp fp_1;

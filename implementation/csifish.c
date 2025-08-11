@@ -1,12 +1,5 @@
 #include "csifish.h"
 
-void print_uint(uint x){
-	for(int i=0 ; i<LIMBS; i++){
-		printf("%lu ", x.c[i] );
-	}
-	printf("\n");
-}
-
 void csifish_keygen(unsigned char *pk, unsigned char *sk){
 	// pick random root seed
 	RAND_bytes(sk, SEED_BYTES);
@@ -67,12 +60,13 @@ void get_challenges(const unsigned char *hash, uint32_t *challenges_index, uint8
 	}
 
 	// generate pseudorandomness
-	EXPAND(tmp_hash,HASH_BYTES,(unsigned char *) challenges_index,sizeof(uint32_t)*ROUNDS);
+	unsigned char randomness[(SEED_BYTES+1)*ROUNDS];
+	EXPAND(tmp_hash,HASH_BYTES,randomness,(SEED_BYTES+1)*ROUNDS);
 
-	// set sign bit and zero out higher order bits
+	// sample index from [0, PKS+1) and generate sign
 	for(int i=0; i<ROUNDS; i++){
-		challenges_sign[i] = (challenges_index[i] >> PK_TREE_DEPTH) & 1;
-		challenges_index[i] &= (((uint16_t) 1)<<PK_TREE_DEPTH)-1;
+		challenges_index[i] = randrange_with_seed(&randomness[SEED_BYTES*i],0,PKS+1);
+		challenges_sign[i] = 1 & randomness[SEED_BYTES*ROUNDS+i];
 	}
 }
 
@@ -140,21 +134,26 @@ void csifish_sign(const unsigned char *sk,const unsigned char *m, uint64_t mlen,
 	(void) indices;
 	mpz_t s[ROUNDS];
 	for(int i=0; i<ROUNDS; i++){
-		indices[challenges_index[i]] = 1;
-		mpz_init(s[i]);
-		sample_mod_cn_with_seed(sk_seeds + challenges_index[i]*SEED_BYTES ,s[i]);
-		if(challenges_sign[i]){
-			mpz_mul_si(s[i],s[i],-1);
+		// only mix in a secret key if challenge < PKS
+		if (challenges_index[i] < PKS) {
+			indices[challenges_index[i]] = 1;
+			mpz_init(s[i]);
+			sample_mod_cn_with_seed(sk_seeds + challenges_index[i]*SEED_BYTES,s[i]);
+			if(challenges_sign[i]){
+				mpz_mul_si(s[i],s[i],-1);
+			}
+			mpz_sub(r[i],s[i],r[i]);
+			mpz_clear(s[i]);
+		} else {
+			mpz_sub(r[i],cn,r[i]);		  
 		}
-		mpz_sub(r[i],s[i],r[i]);
 		mpz_fdiv_r(r[i],r[i],cn);
-
+		
 		// silly trick to force export to have 33 bytes
 		mpz_add(r[i],r[i],cn);
 
 		mpz_export(SIG_RESPONSES(sig) + 33*i, NULL, 1, 1, 1, 0, r[i]);
 
-		mpz_clear(s[i]);
 		mpz_clear(r[i]);
 	}
 
@@ -287,10 +286,13 @@ int csifish_verify(const unsigned char *pk, const unsigned char *m, uint64_t mle
 	for(int i=0; i<ROUNDS; i++){
 		// encode starting point
 		public_key start,end;
-		fp_enc(&(start.A), &pkcurves[challenges_index[i]]);
-
-		if(challenges_sign[i]){
-			fp_mul2(&start.A,&minus_one);
+		if (challenges_index[i] < PKS) {
+			fp_enc(&(start.A), &pkcurves[challenges_index[i]]);
+			if(challenges_sign[i]){
+				fp_mul2(&start.A,&minus_one);
+			}
+		} else {
+			start = base;
 		}
 
 		// decode path
