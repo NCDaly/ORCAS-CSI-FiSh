@@ -44,48 +44,8 @@ int randrange(int min, int max) {
 	return randrange_with_seed(seed, min, max);
 }
 
-void permute_array_with_seed(const unsigned char *seed, unsigned char *arr, uint64_t elem_size, int num_elems) {
-	// using Durstenfeld's version of the Fisher-Yates shuffle
-	unsigned char seeds[SEED_BYTES*(num_elems-1)];
-	EXPAND(seed, SEED_BYTES, seeds, SEED_BYTES);
-	unsigned char tmp[elem_size];
-
-	for (int i = 0; i <= num_elems-2; i++) {
-		// pick random index i <= j < ROUNDS to swap with i
-		int j = randrange_with_seed(&seeds[SEED_BYTES*i], i, num_elems);
-    
-		// apply permutation (i, j)
-		memcpy(tmp, &arr[elem_size*i], elem_size);
-		memcpy(&arr[elem_size*i], &arr[elem_size*j], elem_size);
-		memcpy(&arr[elem_size*j], tmp, elem_size);
-	}
-}
-
-void permute_array(unsigned char *arr, uint64_t elem_size, int num_elems) {
-	// pick random seed
-	unsigned char seed[SEED_BYTES];
-	RAND_bytes(seed,SEED_BYTES);
-
-	// shuffle with seed
-	permute_array_with_seed(seed, arr, elem_size, num_elems);
-}
-
-void permute_index_with_seed(const unsigned char *seed, int *index, int num_elems) {
-	// based on Durstenfeld's version of the Fisher-Yates shuffle
-	unsigned char seeds[SEED_BYTES*(num_elems-1)];
-	EXPAND(seed, SEED_BYTES, seeds, SEED_BYTES);
-
-	for (int i = 0; i <= num_elems-2; i++) {
-		int j = randrange_with_seed(&seeds[SEED_BYTES*i], i, num_elems);
-		if (*index == i) {
-			*index = j;
-		} else if (*index == j) {
-			*index = i;
-		}
-	}
-}
-
 void perm_with_seed(const unsigned char *seed, int *perm, int num_elems) {
+	// based on Durstenfeld's version of the Fisher-Yates shuffle
 	unsigned char seeds[SEED_BYTES*(num_elems-1)];
 	EXPAND(seed, SEED_BYTES, seeds, SEED_BYTES);
 	for (int i = 0; i < num_elems-1; i++) {
@@ -106,13 +66,4 @@ void swap_index(int *index, int i, int j) {
 	} else if (*index == j) {
 		*index = i;
 	}
-}
-
-void permute_index(int *index, int num_elems) {
-	// pick random seed
-	unsigned char seed[SEED_BYTES];
-	RAND_bytes(seed,SEED_BYTES);
-
-	// shuffle with seed
-        permute_index_with_seed(seed, index, num_elems);
 }
