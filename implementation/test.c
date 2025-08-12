@@ -19,16 +19,18 @@ uint64_t rdtsc(){
 #define TOC(A) printf("%s cycles = %lu \n",#A ,rdtsc() - cl); cl = rdtsc();
 
 int main(){
-
 	clock_t t0;
 	unsigned char *pk = aligned_alloc(64,PK_BYTES);
 	unsigned char *sk = aligned_alloc(64,SK_BYTES);
 	uint *stmt = aligned_alloc(64, STMT_BYTES);
 	mpz_t wit1, wit2;
-	printf("pk bytes : %ld \n", (long) PK_BYTES);
-	printf("sk bytes : %ld \n", (long) SK_BYTES);
-	printf("stmt bytes : %ld \n", (long) STMT_BYTES);
-	printf("wit bytes : %ld \n", (long) WIT_BYTES);
+
+	printf("PK_TREE_DEPTH :      %ld \n", (long) PK_TREE_DEPTH);
+	printf("ROUNDS :             %ld \n", (long) ROUNDS);
+	printf("HASHES :             %ld \n", (long) HASHES);
+	printf("KEYS :               %ld \n", (long) KEYS);
+	printf("SIGNATURES_PER_KEY : %ld \n\n", (long) SIGNATURES_PER_KEY);
+	
 	mpz_init(wit1);
 	mpz_init(wit2);
 
@@ -176,6 +178,14 @@ int main(){
 			}
 		}
 	}
+	printf("testing complete! \n\n");
+
+	printf("*** TEST DATA *** \n\n");
+	
+	printf("pk bytes :   %ld \n", (long) PK_BYTES);
+	printf("sk bytes :   %ld \n", (long) SK_BYTES);
+	printf("stmt bytes : %ld \n", (long) STMT_BYTES);
+	printf("wit bytes :  %ld \n\n", (long) WIT_BYTES);
 
 	printf("average sig bytes: %ld\n", sig_size/KEYS/SIGNATURES_PER_KEY); 
 	printf("maximum sig bytes: %ld\n", sig_size_max); 

@@ -18,9 +18,9 @@
 //#define ROUNDS 9
 //#define HASHES (1<<11)
 
-#define PK_TREE_DEPTH 10
-#define ROUNDS 11
-#define HASHES (1<<7)
+//#define PK_TREE_DEPTH 10
+//#define ROUNDS 11
+//#define HASHES (1<<7)
 
 //#define PK_TREE_DEPTH 8
 //#define ROUNDS 13
@@ -42,9 +42,9 @@
 //#define ROUNDS 36
 //#define HASHES (1 << 14)
 
-//#define PK_TREE_DEPTH 1
-//#define ROUNDS 49
-//#define HASHES (1<<15)
+#define PK_TREE_DEPTH 1
+#define ROUNDS 49
+#define HASHES (1<<15)
 
 #define PKS (1<<PK_TREE_DEPTH)
 
