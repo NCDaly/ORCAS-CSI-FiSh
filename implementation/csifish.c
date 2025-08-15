@@ -60,13 +60,15 @@ void get_challenges(const unsigned char *hash, uint32_t *challenges_index, uint8
 	}
 
 	// generate pseudorandomness
-	unsigned char randomness[(SEED_BYTES+1)*ROUNDS];
-	EXPAND(tmp_hash,HASH_BYTES,randomness,(SEED_BYTES+1)*ROUNDS);
+	unsigned char randomness[SEED_BYTES*ROUNDS];
+	EXPAND(tmp_hash,HASH_BYTES,randomness,SEED_BYTES*ROUNDS);
 
-	// sample index from [0, PKS+1) and generate sign
+	// sample from [-PKS, PKS] to generate index and sign
 	for(int i=0; i<ROUNDS; i++){
-		challenges_index[i] = randrange_with_seed(&randomness[SEED_BYTES*i],0,PKS+1);
-		challenges_sign[i] = 1 & randomness[SEED_BYTES*ROUNDS+i];
+		int chal = randrange_with_seed(&randomness[SEED_BYTES*i],-PKS,PKS+1);
+		// subtract 1 because pks are zero-indexed
+		challenges_index[i] = (chal == 0 ? PKS : abs(chal) - 1);
+		challenges_sign[i] = (chal < 0);
 	}
 }
 

@@ -18,33 +18,49 @@
 //#define ROUNDS 9
 //#define HASHES (1<<11)
 
+#define PK_TREE_DEPTH 11
+#define ROUNDS 10
+#define HASHES (1<<8)
+
 //#define PK_TREE_DEPTH 10
 //#define ROUNDS 11
 //#define HASHES (1<<7)
+
+//#define PK_TREE_DEPTH 9
+//#define ROUNDS 12
+//#define HASHES (1<<8)
 
 //#define PK_TREE_DEPTH 8
 //#define ROUNDS 13
 //#define HASHES (1<<11)
 
+//#define PK_TREE_DEPTH 7
+//#define ROUNDS 14
+//#define HASHES (1<<16)
+
 //#define PK_TREE_DEPTH 6
 //#define ROUNDS 16
 //#define HASHES (1<<16)
 
+//#define PK_TREE_DEPTH 5
+//#define ROUNDS 19
+//#define HASHES (1<<14)
+
 //#define PK_TREE_DEPTH 4
 //#define ROUNDS 23
-//#define HASHES (1 << 12)
+//#define HASHES (1<<12)
 
 //#define PK_TREE_DEPTH 3
 //#define ROUNDS 28
-//#define HASHES (1 << 14)
+//#define HASHES (1<<14)
 
 //#define PK_TREE_DEPTH 2
 //#define ROUNDS 36
-//#define HASHES (1 << 14)
+//#define HASHES (1<<14)
 
-#define PK_TREE_DEPTH 1
-#define ROUNDS 49
-#define HASHES (1<<15)
+//#define PK_TREE_DEPTH 1
+//#define ROUNDS 49
+//#define HASHES (1<<15)
 
 #define PKS (1<<PK_TREE_DEPTH)
 

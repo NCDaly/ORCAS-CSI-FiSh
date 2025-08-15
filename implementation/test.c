@@ -80,8 +80,8 @@ int main(){
 		keygenTime += 1000. * (clock() - t0) / CLOCKS_PER_SEC;
 
 		for(int j=0; j<SIGNATURES_PER_KEY; j++){
+			printf("(pre-)signature #%d for key %d \n", j , i );
 			// CSI-FiSh at bat
-			printf("signature #%d for key %d \n", j , i );
 
 			// sign
 			printf(" - sign \n");
@@ -111,7 +111,6 @@ int main(){
 			}
 
 			// ORCAS at bat
-			printf("pre-signature #%d for key %d \n", j , i );
 
 			// rgen
 			printf(" - rgen \n");
@@ -180,21 +179,24 @@ int main(){
 	}
 	printf("testing complete! \n\n");
 
-	printf("*** TEST DATA *** \n\n");
+	//printf("*** TEST DATA *** \n\n");
 	
 	printf("pk bytes :   %ld \n", (long) PK_BYTES);
 	printf("sk bytes :   %ld \n", (long) SK_BYTES);
-	printf("stmt bytes : %ld \n", (long) STMT_BYTES);
-	printf("wit bytes :  %ld \n\n", (long) WIT_BYTES);
+	//printf("stmt bytes : %ld \n", (long) STMT_BYTES);
+	//printf("wit bytes :  %ld \n\n", (long) WIT_BYTES);
 
-	printf("average sig bytes: %ld\n", sig_size/KEYS/SIGNATURES_PER_KEY); 
-	printf("maximum sig bytes: %ld\n", sig_size_max); 
-	printf("minimum sig bytes: %ld\n\n", sig_size_min); 
+	printf("sig bytes :  %ld\n", sig_size/KEYS/SIGNATURES_PER_KEY);
+	printf("psig bytes : %ld\n\n", psig_size/KEYS/SIGNATURES_PER_KEY);
+	//printf("average sig bytes: %ld\n", sig_size/KEYS/SIGNATURES_PER_KEY); 
+	//printf("maximum sig bytes: %ld\n", sig_size_max); 
+	//printf("minimum sig bytes: %ld\n\n", sig_size_min); 
 
-	printf("average psig bytes: %ld\n", psig_size/KEYS/SIGNATURES_PER_KEY); 
-	printf("maximum psig bytes: %ld\n", psig_size_max); 
-	printf("minimum psig bytes: %ld\n\n", psig_size_min); 
+	//printf("average psig bytes: %ld\n", psig_size/KEYS/SIGNATURES_PER_KEY); 
+	//printf("maximum psig bytes: %ld\n", psig_size_max); 
+	//printf("minimum psig bytes: %ld\n\n", psig_size_min); 
 
+	/*
 	printf("keygen cycles :           %lu \n", keygenCycles/KEYS );
 	printf("signing cycles :          %lu \n", signCycles/KEYS/SIGNATURES_PER_KEY );
 	printf("verification cycles :     %lu \n", verifyCycles/KEYS/SIGNATURES_PER_KEY );
@@ -203,8 +205,9 @@ int main(){
 	printf("pre-verification cycles : %lu \n", preverifyCycles/KEYS/SIGNATURES_PER_KEY );
 	printf("adapting cycles :         %lu \n", adaptCycles/KEYS/SIGNATURES_PER_KEY );
 	printf("extracting cycles :       %lu \n\n", extractCycles/KEYS/SIGNATURES_PER_KEY );
-
-	printf("pre-signing repetitions : %d \n\n", presignRepetitions/KEYS/SIGNATURES_PER_KEY );
+	*/
+	
+	//printf("pre-signing repetitions : %d \n\n", presignRepetitions/KEYS/SIGNATURES_PER_KEY );
 
 	printf("keygen time :           %lf ms \n", keygenTime/KEYS );
 	printf("signing time :          %lf ms \n", signTime/KEYS/SIGNATURES_PER_KEY );
